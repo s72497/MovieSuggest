@@ -1,7 +1,7 @@
 // my-movie-frontend/script.js
 
 // --- Configuration ---
-const API_BASE_URL = 'https://movie-suggest-api.onrender.com'; // Your backend API base URL
+const API_BASE_URL = 'http://localhost:3000/api'; // Your backend API base URL
 
 // --- DOM Elements ---
 const authSection = document.getElementById('auth-section');
@@ -48,8 +48,6 @@ const saveProfileBtn = document.getElementById('saveProfileBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const profileMessage = document.getElementById('profileMessage');
 const backToMoviesFromProfileBtn = document.getElementById('backToMoviesFromProfileBtn'); // Back to Movies from Profile button
-
-
 
 
 // --- State Variables ---
@@ -164,8 +162,7 @@ function updateUIForAuth(isAuthenticated, username = '') {
  */
 async function sendAuthRequest(endpoint, dataPayload) {
     try {
-        // Ensure this line has '/api/'
-        const response = await fetch(`<span class="math-inline">\{API\_BASE\_URL\}/api/users/</span>{endpoint}`, {
+        const response = await fetch(`${API_BASE_URL}/users/${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataPayload)
