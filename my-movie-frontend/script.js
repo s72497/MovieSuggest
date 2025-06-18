@@ -164,7 +164,8 @@ function updateUIForAuth(isAuthenticated, username = '') {
  */
 async function sendAuthRequest(endpoint, dataPayload) {
     try {
-        const response = await fetch(`<span class="math-inline">\{API\_BASE\_URL\}/api/users/</span>{endpoint}`, { // <--- ADDED /api/
+        // Ensure this line has '/api/'
+        const response = await fetch(`<span class="math-inline">\{API\_BASE\_URL\}/api/users/</span>{endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataPayload)
