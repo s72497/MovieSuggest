@@ -1,11 +1,9 @@
 // src/modules/users/user.routes.js
-
 const express = require('express');
-const { body, validationResult } = require('express-validator'); // Make sure validationResult is also imported
+const { body } = require('express-validator'); // Make sure express-validator is installed (npm install express-validator)
 const authController = require('./auth.controller'); // Your controller file
 const authMiddleware = require('../../middleware/authMiddleware'); // Your authentication middleware
-
-const router = express.Router(); // This line initializes the router
+const router = express.Router();
 
 // Register a new user
 router.post('/register',
@@ -52,9 +50,9 @@ router.put(
         body('password')
             .optional() // Field is optional for update
             .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long.')
-            // No duplicate .withMessage() here
+            .withMessage('Password must be at least 6 characters long.')
     ],
-    authController.updateProfile
+    authController.updateUser
 );
 
 module.exports = router;

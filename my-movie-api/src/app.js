@@ -12,17 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-// --- PHASE 4 MODIFICATION: CONFIGURE CORS ORIGIN ---
-app.use(cors({
-    origin: [
-        'https://movie-suggest-frontend.onrender.com', // <--- YOUR DEPLOYED RENDER FRONTEND URL
-        'http://localhost:5500', // Common for Live Server in VS Code
-        'http://127.0.0.1:5500', // Another common Live Server address
-        'http://localhost:8080' // Another common local dev port
-        // Add any other specific local development URLs if you use them
-    ]
-}));
-// --- END PHASE 4 MODIFICATION ---
+app.use(cors());
 
 // Mount your API routes
 app.use('/api/users', userRoutes);
