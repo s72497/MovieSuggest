@@ -11,100 +11,90 @@ exports.register = async (req, res) => {
     // Validation check (from express-validator, if used in route)
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        console.log('Validation errors:', errors.array()); // <-- ADD THIS LOG
+        console.log('Validation errors (register):', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
+    // Basic check if express-validator isn't fully comprehensive for some reason
     if (!username || !email || !password) {
-        console.log('Missing fields:', { username, email, password }); // <-- ADD THIS LOG
+        console.log('Missing fields (register):', { username, email, password });
         return res.status(400).json({ message: 'All fields are required.' });
     }
 
     try {
-        console.log('Attempting to find user by username:', username); // <-- ADD THIS LOG
+        console.log('Attempting to find user by username (register):', username);
         const existingUser = await User.findByUsername(username);
         if (existingUser) {
-            console.log('Username already exists:', username); // <-- ADD THIS LOG
+            console.log('Username already exists (register):', username);
             return res.status(409).json({ message: 'Username already exists.' });
         }
 
-        console.log('Generating salt and hashing password...'); // <-- ADD THIS LOG
+        console.log('Attempting to find user by email (register):', email);
+        const existingEmailUser = await User.findByEmail(email); // Also check for existing email
+        if (existingEmailUser) {
+            console.log('Email already exists (register):', email);
+            return res.status(409).json({ message: 'Email already exists.' });
+        }
+
+        console.log('Generating salt and hashing password (register)...');
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        console.log('Attempting to create user:', { username, email }); // <-- ADD THIS LOG
+        console.log('Creating user in database (register)...');
         const userId = await User.create(username, email, passwordHash);
 
-        console.log('User registered successfully:', userId); // <-- ADD THIS LOG
+        console.log('User registered successfully (register), userId:', userId);
         res.status(201).json({ message: 'User registered successfully', userId });
 
     } catch (error) {
-        console.error('CRITICAL ERROR DURING REGISTRATION:', error); // <-- MODIFIED LOG
-        // Log the error object in detail
+        console.error('CRITICAL ERROR DURING REGISTRATION:', error);
         if (error.stack) {
-            console.error('Error Stack:', error.stack); // <-- ADD THIS LOG
-        }
-        if (error.message) {
-            console.error('Error Message:', error.message); // <-- ADD THIS LOG
-        }
-        if (error.code) {
-            console.error('Error Code:', error.code); // <-- ADD THIS LOG
-        }
-
-        if (error.code === 'ER_DUP_ENTRY') { // Catch duplicate entry errors for email
-            return res.status(409).json({ message: 'Email already exists.' });
+            console.error('Register Error Stack:', error.stack);
         }
         res.status(500).json({ message: 'Server error during registration.' });
     }
 };
 
-// Login function - also add similar detailed logging
+// Log in function
 exports.login = async (req, res) => {
     const { username, password } = req.body;
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        console.log('Validation errors (login):', errors.array()); // <-- ADD THIS LOG
+        console.log('Validation errors (login):', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
     if (!username || !password) {
-        console.log('Missing login credentials:', { username, password }); // <-- ADD THIS LOG
+        console.log('Missing fields (login):', { username, password });
         return res.status(400).json({ message: 'Username and password are required.' });
     }
 
     try {
-        console.log('Attempting to find user for login:', username); // <-- ADD THIS LOG
+        console.log('Attempting to find user by username (login):', username);
         const user = await User.findByUsername(username);
         if (!user) {
-            console.log('User not found for login:', username); // <-- ADD THIS LOG
+            console.log('User not found (login) for username:', username);
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        console.log('Comparing passwords...'); // <-- ADD THIS LOG
+        console.log('Comparing passwords (login)...');
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
-            console.log('Password mismatch for user:', username); // <-- ADD THIS LOG
+            console.log('Password mismatch (login) for user:', username);
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        console.log('Signing JWT token for user:', user.user_id); // <-- ADD THIS LOG
-        // Ensure JWT_SECRET is available in your Render environment variables!
-        const token = jwt.sign({ userId: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        console.log('Signing JWT token (login) for user:', user.user_id);
+        const token = jwt.sign({ userId: user.user_id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        console.log('Logged in successfully, sending response.'); // <-- ADD THIS LOG
+        console.log('Logged in successfully, sending response.');
         res.json({ message: 'Logged in successfully', token, user: { id: user.user_id, username: user.username } });
 
     } catch (error) {
-        console.error('CRITICAL ERROR DURING LOGIN:', error); // <-- MODIFIED LOG
+        console.error('CRITICAL ERROR DURING LOGIN:', error);
         if (error.stack) {
-            console.error('Login Error Stack:', error.stack); // <-- ADD THIS LOG
-        }
-        if (error.message) {
-            console.error('Login Error Message:', error.message); // <-- ADD THIS LOG
-        }
-        if (error.code) {
-            console.error('Login Error Code:', error.code); // <-- ADD THIS LOG
+            console.error('Login Error Stack:', error.stack);
         }
         res.status(500).json({ message: 'Server error during login.' });
     }
@@ -113,111 +103,16 @@ exports.login = async (req, res) => {
 // Get User Profile function
 exports.getUserProfile = async (req, res) => {
     const { userId } = req.params; // Get userId from URL parameter
-    const authenticatedUserId = req.user.userId; // User ID from the JWT token
-
-    // Optional: Ensure the user is trying to access their own profile
-    // It's good practice for security.
-    if (parseInt(userId) !== authenticatedUserId) {
-        console.log(`Unauthorized attempt to access profile: Token ID ${authenticatedUserId}, Requested ID ${userId}`);
-        return res.status(403).json({ message: 'Unauthorized access to this profile.' });
-    }
-
-    try {
-        // Assuming you have a User model with a findById method
-        const user = await User.findById(userId); // Fetch user details from database
-
-        if (!user) {
-            console.log(`User not found for profile: ${userId}`);
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        // Exclude sensitive information like password hash from the response
-        const { password_hash, ...userData } = user;
-        res.json({ message: 'User profile fetched successfully', user: userData });
-
-    } catch (error) {
-        console.error('CRITICAL ERROR FETCHING USER PROFILE:', error);
-        if (error.stack) {
-            console.error('Profile Error Stack:', error.stack);
-        }
-        res.status(500).json({ message: 'Server error fetching user profile.' });
-    }
-};
-
-// Update User Profile function
-exports.updateProfile = async (req, res) => {
-    const { userId } = req.params;
-    const { username, email, password } = req.body;
-    const authenticatedUserId = req.user.userId; // User ID from the JWT token
-
-    // Optional: Ensure the user is trying to update their own profile
-    if (parseInt(userId) !== authenticatedUserId) {
-        console.log(`Unauthorized attempt to update profile: Token ID ${authenticatedUserId}, Requested ID ${userId}`);
-        return res.status(403).json({ message: 'Unauthorized to update this profile.' });
-    }
-
-    const errors = validationResult(req); // Check validation results from user.routes.js
-    if (!errors.isEmpty()) {
-        console.log('Validation errors (updateProfile):', errors.array());
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const updateFields = {};
-    if (username !== undefined && username !== null) updateFields.username = username;
-    if (email !== undefined && email !== null) updateFields.email = email;
-
-    if (password) {
-        try {
-            const salt = await bcrypt.genSalt(10);
-            updateFields.password_hash = await bcrypt.hash(password, salt);
-        } catch (hashError) {
-            console.error('Error hashing new password:', hashError);
-            return res.status(500).json({ message: 'Error processing password.' });
-        }
-    }
-
-    if (Object.keys(updateFields).length === 0) {
-        return res.status(400).json({ message: 'No fields provided for update.' });
-    }
-
-    try {
-        // Assuming you have a User model with an update method
-        const success = await User.update(userId, updateFields);
-
-        if (!success) {
-            console.log(`User not found or no changes made for update: ${userId}`);
-            return res.status(404).json({ message: 'User not found or no changes made.' });
-        }
-
-        res.json({ message: 'User updated successfully!' });
-
-    } catch (error) {
-        console.error('CRITICAL ERROR UPDATING USER PROFILE:', error);
-        if (error.stack) {
-            console.error('Update Profile Error Stack:', error.stack);
-        }
-        if (error.code === 'ER_DUP_ENTRY') { // Catch duplicate entry errors for unique fields (username/email)
-            console.error('Duplicate entry error during profile update:', error.message);
-            return res.status(409).json({ message: 'Username or email already exists.' });
-        }
-        res.status(500).json({ message: 'Server error updating profile.' });
-    }
-};
-
-// --- ADD THESE FUNCTIONS TO THE END OF YOUR auth.controller.js FILE ---
-
-// Get User Profile function
-exports.getUserProfile = async (req, res) => {
-    const { userId } = req.params; // Get userId from URL parameter
-    const authenticatedUserId = req.user.userId; // User ID from the JWT token
+    // req.user.userId comes from authMiddleware, which attaches the decoded JWT payload
+    const authenticatedUserId = req.user.userId;
 
     // Log for debugging
     console.log(`[GET PROFILE] Attempting to get profile for userId: ${userId}, Authenticated User ID: ${authenticatedUserId}`);
 
 
-    // Optional: Ensure the user is trying to access their own profile
-    // It's good practice for security.
-    if (parseInt(userId) !== authenticatedUserId) {
+    // Ensure the user is trying to access their own profile (security check)
+    // IMPORTANT: Ensure userId from params is parsed to an integer if your database stores it as number
+    if (parseInt(userId, 10) !== authenticatedUserId) {
         console.log(`[GET PROFILE] Unauthorized attempt to access profile: Token ID ${authenticatedUserId}, Requested ID ${userId}`);
         return res.status(403).json({ message: 'Unauthorized access to this profile.' });
     }
@@ -249,14 +144,15 @@ exports.getUserProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     const { userId } = req.params;
     const { username, email, password } = req.body;
-    const authenticatedUserId = req.user.userId; // User ID from the JWT token
+    // req.user.userId comes from authMiddleware
+    const authenticatedUserId = req.user.userId;
 
     // Log for debugging
     console.log(`[UPDATE PROFILE] Attempting to update profile for userId: ${userId}, Authenticated User ID: ${authenticatedUserId}`);
 
 
-    // Optional: Ensure the user is trying to update their own profile
-    if (parseInt(userId) !== authenticatedUserId) {
+    // Ensure the user is trying to update their own profile (security check)
+    if (parseInt(userId, 10) !== authenticatedUserId) {
         console.log(`[UPDATE PROFILE] Unauthorized attempt to update profile: Token ID ${authenticatedUserId}, Requested ID ${userId}`);
         return res.status(403).json({ message: 'Unauthorized to update this profile.' });
     }
@@ -268,8 +164,10 @@ exports.updateProfile = async (req, res) => {
     }
 
     const updateFields = {};
-    if (username !== undefined && username !== null) updateFields.username = username;
-    if (email !== undefined && email !== null) updateFields.email = email;
+    // Only add fields if they are actually provided in the request body
+    // Using !== undefined to allow empty strings if that's a valid update
+    if (username !== undefined) updateFields.username = username;
+    if (email !== undefined) updateFields.email = email;
 
     if (password) {
         try {
