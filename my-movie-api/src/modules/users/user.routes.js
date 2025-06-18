@@ -50,7 +50,7 @@ router.put(
         body('password')
             .optional() // Field is optional for update
             .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long.')
-            .withMessage('Password must be at least 6 characters long.')
+            
     ],
     authController.updateUser
 );
