@@ -1,7 +1,7 @@
 // my-movie-frontend/script.js
 
 // --- Configuration ---
-const API_BASE_URL = 'https://moviesuggest-5uau.onrender.com'; // Your backend API base URL
+const API_BASE_URL = 'https://movie-suggest-api.onrender.com'; // Your backend API base URL
 
 // --- DOM Elements ---
 const authSection = document.getElementById('auth-section');
