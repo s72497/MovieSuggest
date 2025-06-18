@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieSuggest</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the MovieSuggest!</h1>
+        <nav id="auth-nav">
+            <button id="registerBtn">Register</button>
+            <button id="loginBtn">Login</button>
+            <button id="logoutBtn" style="display:none;">Logout</button>
+            <button id="profileBtn" style="display:none;">Profile</button>
+            <span id="welcomeMessage" style="display:none;"></span>
+        </nav>
+    </header>
+
+    <main>
+        <section id="auth-section" style="display:block;">
+            <h2>Register / Login</h2>
+            <form id="authForm">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="email" id="email" placeholder="Email" required> <!-- Email input for Registration -->
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit" id="submitAuth">Submit</button>
+                <p id="authMessage" class="error-message"></p>
+            </form>
+        </section>
+
+        <section id="movie-search-section" style="display:none;">
+            <h2>Find Movies</h2>
+            <input type="text" id="movieSearchInput" placeholder="Search by title..." />
+            <button id="searchMovieBtn">Search</button>
+
+            <select id="genreSelect">
+                <option value="">Select a Genre</option>
+            </select>
+            <button id="discoverGenreBtn">Discover by Genre</button>
+
+            <button id="viewWatchlistBtn">View My Watchlist</button> <!-- Moved here for visibility -->
+
+            <div id="movieResults">
+            </div>
+        </section>
+
+        <section id="watchlist-section" style="display:none;">
+            <h2>My Watchlist</h2>
+            <button id="backToMoviesBtn">Back to Movies</button> <!-- Back button for Watchlist -->
+            <div id="watchlistResults">
+            </div>
+        </section>
+
+        <section id="profile-management-section" style="display:none;">
+            <h2>Profile Management</h2>
+            <div id="profileDetails">
+                <p><strong>Username:</strong> <span id="profileUsernameDisplay"></span></p>
+                <p><strong>Email:</strong> <span id="profileEmailDisplay"></span></p>
+                <button id="editProfileBtn">Edit Profile</button>
+            </div>
+
+            <form id="profileEditForm" style="display:none;">
+                <h3>Edit Profile</h3>
+                <label for="editUsername">Username:</label>
+                <input type="text" id="editUsername" required>
+
+                <label for="editEmail">Email:</label>
+                <input type="email" id="editEmail" required>
+
+                <label for="newPassword">New Password (optional):</label>
+                <input type="password" id="newPassword" placeholder="Leave blank to keep current password">
+
+                <label for="confirmNewPassword">Confirm New Password:</label>
+                <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+
+                <button type="submit" id="saveProfileBtn">Save Changes</button>
+                <button type="button" id="cancelEditBtn">Cancel</button>
+                <p id="profileMessage" class="error-message"></p>
+            </form>
+            <button id="backToMoviesFromProfileBtn">Back to Movies</button> <!-- Back button for Profile -->
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
